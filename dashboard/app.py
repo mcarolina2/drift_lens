@@ -1,16 +1,23 @@
+import sys
+import os
 import streamlit as st
-import requests
 import pandas as pd
+
+# permite importar src/github_api.py a partir da pasta dashboard/
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
+from github_api import get_drift_report_com_metadados
 
 st.set_page_config(page_title="Drift Lens", layout="wide")
 
-RAW_URL = "https://raw.githubusercontent.com/mcarolina2/drift_lens/main/drift_report.json"
+OWNER = "mcarolina2"   # substitua pelo seu usuário/organização real
+REPO = "drift_lens"
+BRANCH = "main"
 
-@st.cache_data(ttl=300)  # atualiza a cada 5 min
+
+@st.cache_data(ttl=300)
 def carregar_dados():
-    r = requests.get(RAW_URL)
-    r.raise_for_status()
-    return r.json()
+    return get_drift_report_com_metadados(OWNER, REPO, "drift_report.json", BRANCH)
+
 
 st.title("Drift Lens — Monitoramento de Data Drift")
 
@@ -20,8 +27,7 @@ except Exception as e:
     st.error(f"Não foi possível carregar o relatório: {e}")
     st.stop()
 
-# Ajuste as chaves conforme a estrutura real do seu drift_report.json
-df = pd.DataFrame(dados["features"])  # ex: [{"feature": "renda", "psi": 0.31, "status": "CRÍTICO"}, ...]
+df = pd.DataFrame(dados["features"])
 
 col1, col2, col3 = st.columns(3)
 col1.metric("Features monitoradas", len(df))
@@ -34,4 +40,13 @@ st.dataframe(df, use_container_width=True)
 st.subheader("PSI por feature")
 st.bar_chart(df.set_index("feature")["psi"])
 
-st.caption(f"Última atualização: {dados.get('timestamp', 'desconhecida')}")
+# ── Informações do commit que gerou o relatório ──────────────────
+commit = dados.get("_commit", {})
+with st.expander("Origem deste relatório"):
+    st.write(f"**Autor:** {commit.get('autor', '—')}")
+    st.write(f"**Data do commit:** {commit.get('data', '—')}")
+    st.write(f"**Mensagem:** {commit.get('mensagem', '—')}")
+    if commit.get("url"):
+        st.markdown(f"[Ver commit no GitHub]({commit['url']})")
+
+st.caption(f"Relatório gerado em: {dados.get('timestamp', 'desconhecida')}")
