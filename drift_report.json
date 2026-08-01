@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-08-01T12:42:04.064794+00:00",
+  "n_features": 4,
+  "n_criticas": 2,
+  "features": [
+    {
+      "feature": "renda",
+      "psi": 6.123,
+      "status": "CRÍTICO"
+    },
+    {
+      "feature": "idade",
+      "psi": 0.0297,
+      "status": "ESTÁVEL"
+    },
+    {
+      "feature": "score",
+      "psi": 0.0238,
+      "status": "ESTÁVEL"
+    },
+    {
+      "feature": "divida",
+      "psi": 0.6413,
+      "status": "CRÍTICO"
+    }
+  ]
+}
